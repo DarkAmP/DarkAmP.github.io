@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en,zh-TW,default">
+    <!-- title -->
+<!-- keywords -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="author" content="DarkAP">
+    <meta name="renderer" content="webkit">
+    <meta name="copyright" content="DarkAP">
+        <meta name="keywords" content="hexo,hexo-theme,hexo-blog">
+    <meta name="description" content="欢迎你的到来，希望能对你有些许帮助">
+    <meta name="description" content="Here&#39;s something encrypted, password is required to continue reading.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DCSync 攻击">
+<meta property="og:url" content="https://darkamp.github.io/2025/03/08/OSCP/DCSync%20%E6%94%BB%E5%87%BB/index.html">
+<meta property="og:site_name" content="DarkAP">
+<meta property="og:description" content="Here&#39;s something encrypted, password is required to continue reading.">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-08T08:29:52.000Z">
+<meta property="article:modified_time" content="2025-09-20T08:33:29.701Z">
+<meta property="article:author" content="DarkAP">
+<meta property="article:tag" content="OSCP">
+<meta property="article:tag" content="域控">
+<meta name="twitter:card" content="summary">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="icon" href="/assets/02.ico">
+    <title>DCSync 攻击 · DarkAP&#39;s Blog</title>
+    <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+/* This file is meant as a standalone workflow for
+- testing support for link[rel=preload]
+- enabling async CSS loading in browsers that do not support rel=preload
+- applying rel preload css once loaded, whether supported or not.
+*/ -->
+<script>
+    (function (w) {
+        'use strict'
+        // rel=preload support test
+        if (!w.loadCSS) {
+            w.loadCSS = function () {}
+        }
+        // define on the loadCSS obj
+        var rp = (loadCSS.relpreload = {})
+        // rel=preload feature support test
+        // runs once and returns a function for compat purposes
+        rp.support = (function () {
+            var ret
+            try {
+                ret = w.document.createElement('link').relList.supports('preload')
+            } catch (e) {
+                ret = false
+            }
+            return function () {
+                return ret
+            }
+        })()
+
+        // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+        // then change that media back to its intended value on load
+        rp.bindMediaToggle = function (link) {
+            // remember existing media attr for ultimate state, or default to 'all'
+            var finalMedia = link.media || 'all'
+
+            function enableStylesheet() {
+                link.media = finalMedia
+            }
+
+            // bind load handlers to enable media
+            if (link.addEventListener) {
+                link.addEventListener('load', enableStylesheet)
+            } else if (link.attachEvent) {
+                link.attachEvent('onload', enableStylesheet)
+            }
+
+            // Set rel and non-applicable media type to start an async request
+            // note: timeout allows this to happen async to let rendering continue in IE
+            setTimeout(function () {
+                link.rel = 'stylesheet'
+                link.media = 'only x'
+            })
+            // also enable media after 3 seconds,
+            // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+            setTimeout(enableStylesheet, 3000)
+        }
+
+        // loop through link elements in DOM
+        rp.poly = function () {
+            // double check this to prevent external calls from running
+            if (rp.support()) {
+                return
+            }
+            var links = w.document.getElementsByTagName('link')
+            for (var i = 0; i < links.length; i++) {
+                var link = links[i]
+                // qualify links to those with rel=preload and as=style attrs
+                if (
+                    link.rel === 'preload' &&
+                    link.getAttribute('as') === 'style' &&
+                    !link.getAttribute('data-loadcss')
+                ) {
+                    // prevent rerunning on link
+                    link.setAttribute('data-loadcss', true)
+                    // bind listeners to toggle media back
+                    rp.bindMediaToggle(link)
+                }
+            }
+        }
+
+        // if unsupported, run the polyfill
+        if (!rp.support()) {
+            // run once at least
+            rp.poly()
+
+            // rerun poly on an interval until onload
+            var run = w.setInterval(rp.poly, 500)
+            if (w.addEventListener) {
+                w.addEventListener('load', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            } else if (w.attachEvent) {
+                w.attachEvent('onload', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            }
+        }
+
+        // commonjs
+        if (typeof exports !== 'undefined') {
+            exports.loadCSS = loadCSS
+        } else {
+            w.loadCSS = loadCSS
+        }
+    })(typeof global !== 'undefined' ? global : this)
+</script>
+
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .footer-fixed-btn,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(
+            -45deg,
+            #444 0,
+            #444 80px,
+            #333 80px,
+            #333 160px
+        );
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s infinite;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+</style>
+
+    <link id="stylesheet-fancybox" rel="preload" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-base" rel="preload" href="/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-mobile" rel="preload" href="/css/mobile.css" as="style" onload="this.onload=null;this.rel='stylesheet';this.media='screen and (max-width: 960px)'">
+    <link id="stylesheet-theme-dark" rel="preload" href="/css/dark.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" as="script">
+    <link rel="preload" href="/scripts/main.js" as="script">
+    <link rel="preload" href="/font/Oswald-Regular.ttf" as="font" crossorigin>
+    <link rel="preload" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" as="font" crossorigin>
+    <!-- algolia -->
+    <!-- 百度统计  -->
+    <!-- 谷歌统计  -->
+    <!-- Google tag (gtag.js) -->
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof window.$ == undefined) {
+            console.warn('jquery load from jsdelivr failed, will load local script')
+            document.write('<script src="/lib/jquery.min.js" />')
+        }
+    </script>
+        <body class="post-body">
+        <!-- header -->
+        <header class="header header-mobile">
+    <!-- top read progress line -->
+    <div class="header-element">
+        <div class="read-progress"></div>
+    </div>
+    <!-- sidebar menu button -->
+    <div class="header-element">
+        <div class="header-sidebar-menu">
+            <div style="padding-left: 1px;">&#xe775;</div>
+        </div>
+    </div>
+    <!-- header actions -->
+    <div class="header-actions">
+        <!-- theme mode switch button -->
+        <span class="header-theme-btn header-element">
+            <i class="fas fa-adjust"></i>
+        </span>
+        <!-- back to home page text -->
+        <span class="home-link header-element">
+            <a href="/">DarkAP's Blog</a>
+        </span>
+    </div>
+    <!-- toggle banner -->
+    <div class="banner">
+        <div class="blog-title header-element">
+            <a href="/">DarkAP&#39;s Blog</a>
+        </div>
+        <div class="post-title header-element">
+            <a href="#" class="post-name">DCSync 攻击</a>
+        </div>
+    </div>
+</header>
+
+        <!-- fixed footer -->
+        <footer class="footer-fixed">
+    <!-- donate button -->
+
+    <!-- back to top button -->
+    <div class="footer-fixed-btn footer-fixed-btn--hidden back-top">
+        <div>&#xe639;</div>
+    </div>
+</footer>
+
+        <!-- wrapper -->
+        <div class="wrapper">
+            <div class="site-intro" style="    height:50vh;
+">
+    <!-- 主页  -->
+    <!-- 404页  -->
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+                DCSync 攻击
+            <!-- 404 -->
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            <!-- 404 -->
+        </p>
+        <!-- 文章页 meta -->
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                    <div class="post-intro-tags" >
+        <a class="post-tag" href="javascript:void(0);" data-tags="OSCP">OSCP</a>
+        <a class="post-tag" href="javascript:void(0);" data-tags="域控">域控</a>
+</div>
+
+                <!-- 文章字数统计 -->
+                    <div class="post-intro-read">
+                        <span>Word count: <span class="post-count word-count">6</span>Reading time: <span class="post-count reading-time">1 min</span></span>
+                    </div>
+                <div class="post-intro-meta">
+                    <!-- 撰写日期 -->
+                    <span class="iconfont-archer post-intro-calander">&#xe676;</span>
+                    <span class="post-intro-time">2025/03/08</span>
+                    <!-- busuanzi -->
+                        <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                            <span class="iconfont-archer post-intro-busuanzi">&#xe602;</span>
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    <!-- 文章分享 -->
+                    <span class="share-wrapper">
+                        <span class="iconfont-archer share-icon">&#xe71d;</span>
+                        <span class="share-text">Share</span>
+                        <ul class="share-list">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+    </div>
+</div>
+
+            <script>
+  // get user agent
+  function getBrowserVersions() {
+    var u = window.navigator.userAgent
+    return {
+      userAgent: u,
+      trident: u.indexOf('Trident') > -1, //IE内核
+      presto: u.indexOf('Presto') > -1, //opera内核
+      webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+      gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+      mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+      ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+      android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+      iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+      iPad: u.indexOf('iPad') > -1, //是否为iPad
+      webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+      weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+      uc: u.indexOf('UCBrowser') > -1, //是否为android下的UC浏览器
+    }
+  }
+  var browser = {
+    versions: getBrowserVersions(),
+  }
+  console.log('userAgent: ' + browser.versions.userAgent)
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded')
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document
+        .getElementsByClassName('intro-title')[0]
+        .classList.add('intro-fade-in')
+      document
+        .getElementsByClassName('intro-subtitle')[0]
+        .classList.add('intro-fade-in')
+      var postIntros = document.getElementsByClassName('post-intros')[0]
+      if (postIntros) {
+        postIntros.classList.add('post-fade-in')
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb() {
+    if (browser.versions.uc) {
+      console.log('UCBrowser')
+      fontLoaded()
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular'],
+        },
+        loading: function () {
+          // 所有字体开始加载
+          // console.log('font loading');
+        },
+        active: function () {
+          // 所有字体已渲染
+          fontLoaded()
+        },
+        inactive: function () {
+          // 字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout')
+          fontLoaded()
+        },
+        timeout: 5000, // Set the timeout to two seconds
+      })
+    }
+  }
+
+  function asyncErr() {
+    console.warn('script load from CDN failed, will load local script')
+  }
+
+  // load webfont-loader async, and add callback function
+  function async(u, cb, err) {
+    var d = document,
+      t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0]
+    o.src = u
+    if (cb) {
+      o.addEventListener(
+        'load',
+        function (e) {
+          cb(null, e)
+        },
+        false
+      )
+    }
+    if (err) {
+      o.addEventListener(
+        'error',
+        function (e) {
+          err(null, e)
+        },
+        false
+      )
+    }
+    s.parentNode.insertBefore(o, s)
+  }
+
+  var asyncLoadWithFallBack = function (arr, success, reject) {
+    var currReject = function () {
+      reject()
+      arr.shift()
+      if (arr.length) async(arr[0], success, currReject)
+    }
+
+    async(arr[0], success, currReject)
+  }
+
+  asyncLoadWithFallBack(
+    [
+      'https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js',
+      'https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js',
+      "/lib/webfontloader.min.js",
+    ],
+    asyncCb,
+    asyncErr
+  )
+</script>
+
+            <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" alt="loading">
+            <div class="container container-unloaded">
+                <main class="main post-page">
+    <article class="article-entry">
+        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="a48fff3ee60a4b7c05926f58515acf1a3bccd23227cc8814e4e5bf60107c227f">d6681db7aa130979cd278c2b60341964ee71245c6a75d6a3ae2d422bc78540dbb78d39ce4df74edb4dde862c4f2bbbce976f3150475546167088c7bce66539fdbe66a94f0a3efad7a9a4972dd2666e2ef175302bbafa8f65c9d5267835d728a78bb55307de49dac779b2f122b45dfb570a8fc55405957adc17a3abcf19a7f658d79e883e0a4f8f51e369fb18324a757cc964ee7b10acecda9049fe27cafa8cbf4fd0cf6875943b9270f5d05fda77f515ee62ff14c2086d5eca4dccecb7472ece6050d6d16e02a83dbe6b9363f1424ab88278249bd345dbf639d9b906961be1c6bb3553e6d53370e4dcb4f1804ad557895f2b0f004878dbacda19a39f36aa882b8a81f9a7fabfe7504ca93edfad96d8d3f1c08d9bbc31a8d75101348bef95e919507edc7821ab6b08a1e1fbc67fe4b6e8e3d8bc9f4f0f0c80a47e67f982d928275787c2710ad623e6316fcf4a79ede77c2b8af98067bd042bbb57c37956b2b6a2269b6e1c01c1de213b3c9ebb0ee99af3e8ea19bc8981bf01d3ddb90575276e6a725a68dcd88065405b48901030e74910d13ae32e431f58f08ca8a777a3afe844550d72fc357d2814d8af9ac7f91743f6c06bc29a1b8eebdd8f431cefd2ea874b00f3343e2f186e12d3ddfed57aff897a70b3975c42aa9156f19dbec8d602ccc27f218ad9d3af7634c5eaa340776b7025471ae1a9d1e82afa63ae347f30bf3322af529c68691b78dac6446c903db274df548c89ed215d36065e87edd3d8d7f40c0b49d3c526f177d45ed2757662e9ea872d92c0abadf148ba03535a658e825e169f2d4f6dd57ee4710f125350a3a75bb37670923a2c441ff4e859f525cca40e1b479f3a4e33b6c94737dcb3b524821c15fa50c4e2b129abdc1eb00dee752de918c433c7bdc9eda359e3ca94b50589750bb4aa83c245083e8b2fb64ab1118b90c2d2142e7b47c14e1db25b412a4dedff424eb139d3a1ff1465f83e5c9f62abe1b08a35a62c5f9715968b81f586ab739a2c6278a6eec66c064ad044357632650e5d735b835480a783943a5dec3a8d5e9c3d56c0f51a10662a1cad723e4e962a68fb7f080633ab580decf8befe472cc8de48aaa08dd84546b744426ec3e376037eba162c04ca68b36f097311d0d76e1ce20698405f2118497d6ed7b745ca416564608b3d7500c603410c41677057140d6c81c4d7eb4058db41154cfbf7039b8ae905bcb6db4137a6304195fa2591a1ae3fe53c1df7bdafe980c75ac3e9f0bd86905898784cc9669fd044235d938dc53e86b9ee2e6c94c8004fa5c576a723f552ed5903fdce0da3d8eaed1885f20a4831c0ab9330b1c6c1ee270817258307f815ace0e1510bd168cdc8f26759eccb6577ea5c12de279da3ac3d0dbf1f413cc697a662cc3cc8d74fc2153e20b13b4486f3df4f48286873496fd9d53cd57ea01b167c7099ee2985918d38ead69304b4e709a66bd59e9831ccae525a2c5dd0a1e6c0071509d29f4edde247fd324d4e270b5388d1d06ba95a20cbe72962521057a3e5cbf4cf5d82dbf390d963dd84a23ebffe21ffb7e39e8a26654b0f33f753886ae1ab80ca7e33badbd47e9afc20eefe5882aad990b70694114b98ac3a04419d4922db30b408d655a827f4f247a40eaa0de0b0d502d3bfded1eb660a5a656f21164105979da9b75044371a525bf6c318e03ed46eb35db128209ee5596236f9270c008e11c0dd236bfc6e5d9f1f3ceddc79651e9ee182a974159255eb836b63f3d346d8d59d5ffd9a220b5dfa66c1fc004a5b74db1e7de1ac3d94e34b1d6ef07660e20897cbc9068ef441102ab8bdf978e4ee2ba56138b88475ba1df40ea7fd98bbb1caa351463f3486b797bc6257182b917436a7a36ed74bca61b14167a5aecac8febc08f4ad40bf9c5e6320ee647b27d54732928a97a57236ddbad5f9692b2a64bf518b77a2379887036f66593ea1df415481b3134c88255f687c6958f846fb40a04d84c4e20a9e108e8794d12328f57b065cbc87fbf99d7d307974c06073419ecd1e9763a85a5b238db2f1a38a439ff94b6b9d238595c3493bfea6309d29803ba58edb1cb4064026c6597774c1d7242a66343a3ddd06a54edf39665ff4fc9a8ff29a141b7292b50b67ba057fe5bd3878279cbb80e66a775983403d0975aab9669a8cbdaaf9ca4974313ec9daa968d0968c663632b262e469779351d058fd7170f299c386b10591150a1a1d94e85a18979f2d97143197547808e1814f3393c62262aaad317f97cc7bff121cafe24c85c438861646bc0256f00debf74d9c5823b4ebb0bdb80fe5b59c87b98f1c04b456530f2dfa2288b056e370ca06ef0650ed1370732dafc3407c4980148cb1fb4977810ad2de449fbf2cfee703dee6dbefb10ddfb5520b3c08e40aaeebfcf08686abef24071462cbbb7e6c347bedd6ad0c198e3e039b79ff5dee20bc2290ffbba20a4c1d34d9f105ff33b1f71b25aa2684965f6924e776f37d55d1045ae0ee89f3bf6a2c787ac05052ed357ec1c83764d54a8d7a858019cd171ff4467bfe229d496330aff57de836cba6c52a200c88155f759bddb72cbbee31dc5c2b83ec269e8c6aec6e10bab264e0636ba77be38963a63fb32eef1f7396daf423c1b258747ae4f9a8d951e5b268a51401f95132034fc9901828cee114f5410f622ea1250e457684e4c136d2b831fb675ed2d5f4702c6645094c42fceb89e9bcf0c011aa014e6ec92e3b6fe19426aa567acb7154bb143eec41175aaddd538eb228c1767ec3585dee40cb1c28213ce7319210ac9a4d3f07e4cc8d1d45aad267accd60578ca8526d78d3f722b5800c9e6fde44d22d9fc2e706a8632250bfc0c07ba3e79c2bf792e2782ca90d4bbd87b7946ed96fd68bcf63d8e21919183273dbf3cf45742baea6f0472af0fb1e62f93d8b5463af9843e47b84a604874be398dbf86614ea5cf79b348888b8aaf7d1775f3d49cff0bf5245e7c717d467de3fc39718ec58e986a59a6ed39a1145a1eb7821896b1d37023ad93a5a810a9f024045ee0d2b4f8ade43622e58718ed6d1bdf8c76a1350e426238a9fc00b6a90d6d04e815ff245d155d900af24c2b7b282e27b527b6a478a0a90e3a6dc3040f438938cd334f1f550ed00b30ac4e5d653d16dcdf9207d19cafd8c5394cfa78c590de875963de5247035305bac03ae9d4534745366cc3ee8ee8d38cf1b202a212571bb205b54a9671953bbdea06c66aa766b3d04692ab668a41ffdd4a02d953e729734eef43f7914274486475f4a6e5cd81ec75ad9b699bfa6c3c08da9bfea1482591a6ceac75606d3ab004dc667bf1b0b61384a5b1750de4e2c233783e252eb174d1d80171e8e9bb917be209b42234b2b9f46bfb3b8b2cbf9ea1d774ba2fc8e98cb5025b3ae86379ad35652755dc427340d609cd14edca72ad94bee6363fbfbc85495b8a02afb64787609b870d21cbe56b3a01568625a6e70de6a9c6b20a3fd2081aa4ad1c95affd7f1bcc81a0171d34b418f8e36f26b724b618a0f47ed59eb2f5715af6efaad818409885724deeef92426ddab142dd6936df8d4b0ebadc404144814434956e921d4aaa4b43946a0e1a2a8876d3e1b2ed6c4ffe80591bd7077edf2a60b468a0f33e5db60ec4d20ca1e948e52d089dc9e2fe327df5a40265f935d5cc79d94db47d5aabea5deb0b1470b242f38230c61118211c495c78e87044a902741a040ab436b13ef8a9ba2fa51ac5021790c733902e81513e32b5d244345bc4dcb2c6664206cc6c44f046eb5196eb46d2d2c442052d8e5102a11a8fa3b9b398c286b23434a477387ce2e1fb5cc151ccbb6cb9b0a7991beee6308e1e8a86f90f73cc8ec88ae524479d01248906bac23ef70a595377444f967e9823c4eba2d3db0bc6cb1353f020dd98616381c2c10769a52fb9e0ad01d93f7bc677f3fd6b2b741b2062ad0e26ec7046460e3e5a13746fa535cbda143eb86f61401c50cf7785adead3c17e676e83e9ce66759af6c33a635c8a4a0ed4b14ece16554b5370a41ee4d96cc6db96b2b6dc787ac5532f86318c59419aebc5213f546ec135ddf48e58680f970697d7c72ce3b42670b509651e1c4fc712371a36c71bec48d1ec0c1d129f6e225da67bcc608e7abebbc78e5f6022d3979fc9f45ac287ff3c6e6e300c16070ec84a02bb0103ab8bd1c47a38f44a53e6c4b60ceab1216b073a29b3c38ac32fd7867c61eeca3ae762932131c9c9d761453432cc20c92b98adfba564cd3cfe468aea4390deef885ff62ad9bb554a06310483a410fe928389b625c353b5d10177e3df3df4f3541aaa01785abfbd8b6911694f6fd01c1b981e642ed8615254ef98f816ae680a370fdd246631d1b418f45296b0c010dba6ac5554b7791e5a05c135458c26446d2332f81b4ecc80c236495188792d0f89394523fcb362fb7506033a48df618423581ed993917d99daf45481d0731ebcd64c0a8e031b0e930fc35378ce83e26db962236d96c24e6244bb2bcfbd2e86c4615558f3ee6545d59701ab87596c251badc767a71f32e8327413a130b105897908fcff6866b77aa8d20351e300a491ff6cbe8f90ba0f449dcfd10269056ae5569f18af77ea4c59b08458689844c5b2f29dd7dad0876aa616ea9b3e94d4eb450a4f41d9b868dc4258a08edadcc287357d60699a17f7ce51110fefffcb01545d3cb46febcee53530beeb8ed4036ac36ad469f7b48d2f252d56614847660f10d7f29fcf0483c88af4384ec044bcb9e90987b8959894975a34efcba1487939f7ebc9e24e1051f43d1027053d04e5369ade6f40dc4cc693bcb8293673ec1f8ce01af0c1e209719a382f1448be9d9e3a1c21641ad35b1306a79ad34365a4e0202b40f77551d2213dc1c945ce58de28c611a492bfa21d0df2ff3a145e028c5c6919f9530bc94fcff3556399fb2b6f6da40aee5c93900de4828c4fed631877422a90b2bbb5d203d1cd590f7cfbd12a9860a4e879a422dc7bd6f651ffe0bfa51a41a8ff3e1405a09157b176342732b0e3a7bb0aa6529dbda0f709c5e45817ede2300d33d223957d3a9e7be9bef990613394e0ff82c4ed09119919b55e8532b30c0</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Hey, password is required here.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">
+    </article>
+    <!-- license -->
+        <div class="license-wrapper">
+            <p>Author：<a href="https://DarkAmP.github.io">DarkAP</a>
+            <p>Link：<a href="https://darkamp.github.io/2025/03/08/OSCP/DCSync%20%E6%94%BB%E5%87%BB/">https://darkamp.github.io/2025/03/08/OSCP/DCSync%20%E6%94%BB%E5%87%BB/</a>
+            <p>Publish date：<a href="https://darkamp.github.io/2025/03/08/OSCP/DCSync%20%E6%94%BB%E5%87%BB/">March 8th 2025, 4:29:52 pm</a>
+            <p>Update date：<a href="https://darkamp.github.io/2025/03/08/OSCP/DCSync%20%E6%94%BB%E5%87%BB/">September 20th 2025, 4:33:29 pm</a>
+            <p>License：本文采用<a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可</p>
+        </div>
+    <!-- paginator -->
+    <ul class="post-paginator">
+        <li class="next">
+                <div class="nextSlogan">Next Post</div>
+                <a href="/2025/03/08/OSCP/Pass-the-Ticket%20(PTT)%20%E7%9A%84%E5%90%AB%E4%B9%89/" title="Pass-the-Ticket (PTT) 的含义">
+                    <div class="nextTitle">Pass-the-Ticket (PTT) 的含义</div>
+                </a>
+        </li>
+        <li class="previous">
+                <div class="prevSlogan">Previous Post</div>
+                <a href="/2025/03/08/OSCP/enum4linux/" title="enum4linux">
+                    <div class="prevTitle">enum4linux</div>
+                </a>
+        </li>
+    </ul>
+    <!-- comment -->
+        <div class="post-comment">
+            <!-- 来必力 City 版安装代码 -->
+
+            
+            
+            
+            <!-- utteranc评论 -->
+
+            <!-- partial('_partial/comment/changyan') -->
+            <!--PC版-->
+
+            
+            
+            
+        </div>
+    <!-- timeliness note -->
+    <!-- idea from: https://hexo.fluid-dev.com/posts/hexo-injector/#%E6%96%87%E7%AB%A0%E6%97%B6%E6%95%88%E6%80%A7%E6%8F%90%E7%A4%BA -->
+    <!-- Mathjax -->
+</main>
+
+                <!-- profile -->
+            </div>
+            <footer class="footer footer-unloaded">
+    <!-- social  -->
+        <div class="social">
+                            <a href="mailto:1085668417@qq.com" class="iconfont-archer email" title="email" ></a>
+                <a href="//github.com/DarkAmP" class="iconfont-archer github" target="_blank" title="github"></a>
+                <span class="iconfont-archer wechat" title="wechat">
+                    <img class="profile-qr" src="/assets/example_qr.png" />
+                </span>
+
+        </div>
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- website approve for Chinese user -->
+    <!-- 不蒜子  -->
+        <div class="busuanzi-container">
+                <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span> :)</span>
+        </div>
+</footer>
+
+        </div>
+        <!-- toc -->
+            <div class="toc-wrapper toc-wrapper-loding" style=    top:50vh;
+>
+                <div class="toc-catalog">
+                    <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+                </div>
+                
+            </div>
+        <!-- sidebar -->
+        <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+        <div class="sidebar-panel-archives">
+    <!-- 在 ejs 中将 archive 按照时间排序 -->
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    <div class="total-and-search">
+        <div class="total-archive">
+        Total : 55
+        </div>
+        <!-- search  -->
+    </div>
+    <div class="post-archive">
+            <div class="archive-year"> 2025 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/PowerView/">PowerView</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/PsExec/">PsExec</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/Rubeus/">Rubeus</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/chisel--%E6%9C%AA%E5%AE%8C%E6%88%90/">chisel--未完成</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/rpcclient/">rpcclient</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/secretsdump.py/">secretsdump.py</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/smbclient/">smbclient</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%8D%B7%E5%BD%B1%E5%89%AF%E6%9C%AC/">卷影副本</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E6%8E%A7%E5%88%B6%E5%99%A8%E5%B8%B8%E8%A7%81%E7%AB%AF%E5%8F%A3/">域控制器常见端口</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E5%86%85%E6%BC%8F%E6%B4%9E%E5%92%8C%E5%88%A9%E7%94%A8/">域内漏洞和利用</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E6%B8%97%E9%80%8F%E6%80%9D%E8%B7%AF/">域渗透思路</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E5%86%85%E7%BC%A9%E5%86%99/">域内缩写</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%AF%86%E7%A0%81%E5%96%B7%E6%B4%92/">密码喷洒</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/">横向移动</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%A7%94%E6%B4%BE%E6%94%BB%E5%87%BB/">委派攻击</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E6%9C%AC%E6%9C%BA%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/">本机端口转发</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E7%A5%A8%E6%8D%AE%E6%94%BB%E5%87%BB/">票据攻击</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/09</span>
+            <a class="archive-post-title" href="/2025/03/09/OSCP/LM%20Hash%20%E5%92%8C%20NT%20Hash/">LM Hash 和 NT Hash</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/DCSync%20%E6%94%BB%E5%87%BB/">DCSync 攻击</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/Pass-the-Ticket%20(PTT)%20%E7%9A%84%E5%90%AB%E4%B9%89/">Pass-the-Ticket (PTT) 的含义</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/enum4linux/">enum4linux</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/getST.py/">getST.py</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/LDAP/">LDAP</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/Mimikatz/">Mimikatz</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/ldapsearch/">ldapsearch</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/ligolg-ng/">ligolg-ng</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/kekeo-%E6%9C%AA%E5%AE%8C%E6%88%90/">kekeo-未完成</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/03</span>
+            <a class="archive-post-title" href="/2025/03/03/OSCP/Kerberos%E8%AE%A4%E8%AF%81%E8%BF%87%E7%A8%8B/">Kerberos认证过程</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/08</span>
+            <a class="archive-post-title" href="/2025/01/08/OSCP/AD%E7%AE%80%E4%BB%8B%E5%92%8C%E6%9E%9A%E4%B8%BE%20%E8%AF%BE%E6%9C%AC/">AD简介和枚举 课本</a>
+        </li>
+                </ul>
+            <div class="archive-year"> 2024 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/31</span>
+            <a class="archive-post-title" href="/2024/12/31/OSCP/NTLM%E5%8D%8F%E8%AE%AE/">NTLM协议</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/10</span>
+            <a class="archive-post-title" href="/2024/11/10/brainfuck/">HTB-Labs(brainfuck)</a>
+        </li>
+                </ul>
+            <div class="archive-year"> 2023 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/04</span>
+            <a class="archive-post-title" href="/2023/11/04/cronos/">HTB-Labs(cronos)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/24</span>
+            <a class="archive-post-title" href="/2023/10/24/Vulhub/MrRootMD/">HTB-Labs(MrRootMD)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/18</span>
+            <a class="archive-post-title" href="/2023/10/18/beep/">HTB-Labs(Beep)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/18</span>
+            <a class="archive-post-title" href="/2023/10/18/nibbles/">HTB-Labs(nibblers)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/18</span>
+            <a class="archive-post-title" href="/2023/10/18/nibber/">HTB-Labs(nibber)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/31</span>
+            <a class="archive-post-title" href="/2023/08/31/Shocker/">HTB-Labs(Shocker)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/17</span>
+            <a class="archive-post-title" href="/2023/08/17/unified/">HTB-Labs(unified)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span>
+            <a class="archive-post-title" href="/2023/08/16/Lame/">HTB-Labs(Lame)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/09</span>
+            <a class="archive-post-title" href="/2023/08/09/Vaccine/">HTB-Labs(Vaccine)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/03</span>
+            <a class="archive-post-title" href="/2023/08/03/PWN/%E5%82%A8%E5%AD%98%E5%8D%95%E5%85%83/">二进制存储单元</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/03</span>
+            <a class="archive-post-title" href="/2023/08/03/PWN/%E4%B8%A4%E4%B8%AA%E5%85%B3%E9%94%AE%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8/">两个关键的寄存器</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%A0%88%E5%92%8C%E5%A0%86%E7%9A%84%E5%8C%BA%E5%88%AB/">堆和栈的区别</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%A0%88%E4%BB%8B%E7%BB%8D/">栈介绍</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%A0%88%E5%92%8C%E6%A0%88%E6%93%8D%E4%BD%9C%E7%9A%84%E5%AE%9E%E7%8E%B0/">堆栈操作的实现</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%B1%87%E7%BC%96%E6%8C%87%E4%BB%A4%E5%85%A5%E9%97%A8mov%E5%92%8Cadd/">汇编指令入门mov和add</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%20%E5%9F%BA%E4%BA%8Ex86%E5%A4%84%E7%90%86%E5%99%A8%20%E7%AC%AC7%E7%89%88%20-%20Nya/">汇编语言 基于x86处理器</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/28</span>
+            <a class="archive-post-title" href="/2023/07/28/Archetype/">HTB-Labs(Archetype)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/28</span>
+            <a class="archive-post-title" href="/2023/07/28/Oopsie/">HTB-Labs(Oopsie)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/17</span>
+            <a class="archive-post-title" href="/2023/07/17/Vulhub/lin.security/">HTB-Labs(lin.security)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/05</span>
+            <a class="archive-post-title" href="/2023/06/05/Three/">HTB-Labs(Three)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span>
+            <a class="archive-post-title" href="/2023/06/02/Responder/">HTB-Labs(Resonder)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/24</span>
+            <a class="archive-post-title" href="/2023/05/24/Vulhub/SkyTower/">HTB-Labs(SkyTower)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/23</span>
+            <a class="archive-post-title" href="/2023/05/23/Vulhub/pWnOS%20v2.0/">HTB-Labs(pWnOS)</a>
+        </li>
+                </ul>
+            <div class="archive-year"> 2022 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/23</span>
+            <a class="archive-post-title" href="/2022/12/23/Vulhub/Kioptix%20Level%201/">HTB-Labs(Kioptix Level 1)</a>
+        </li>
+            </ul>
+    </div>
+</div>
+
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+            <span class="sidebar-tag-name" data-tags="HTB">
+                <span class="iconfont-archer">&#xe606;</span>
+                HTB
+            </span>
+            <span class="sidebar-tag-name" data-tags="Lab">
+                <span class="iconfont-archer">&#xe606;</span>
+                Lab
+            </span>
+            <span class="sidebar-tag-name" data-tags="HtbStartPorint">
+                <span class="iconfont-archer">&#xe606;</span>
+                HtbStartPorint
+            </span>
+            <span class="sidebar-tag-name" data-tags="OSCP">
+                <span class="iconfont-archer">&#xe606;</span>
+                OSCP
+            </span>
+            <span class="sidebar-tag-name" data-tags="域控">
+                <span class="iconfont-archer">&#xe606;</span>
+                域控
+            </span>
+            <span class="sidebar-tag-name" data-tags="汇编">
+                <span class="iconfont-archer">&#xe606;</span>
+                汇编
+            </span>
+            <span class="sidebar-tag-name" data-tags="PWN">
+                <span class="iconfont-archer">&#xe606;</span>
+                PWN
+            </span>
+            <span class="sidebar-tag-name" data-tags="Vulhub">
+                <span class="iconfont-archer">&#xe606;</span>
+                Vulhub
+            </span>
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+        缺失模块，请参考主题文档进行安装配置：https://github.com/fi3ework/hexo-theme-archer#%E5%AE%89%E8%A3%85%E4%B8%BB%E9%A2%98
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+
+    </div>
+</div>
+
+        <!-- site-meta -->
+        <script>
+    var siteMetaRoot = "/"
+    if (siteMetaRoot === "undefined") {
+        siteMetaRoot = '/'
+    }
+    var siteMeta = {
+        url: "https://DarkAmP.github.io",
+        root: siteMetaRoot,
+        author: "DarkAP"
+    }
+</script>
+
+        <!-- import experimental options here -->
+        <!-- Custom Font -->
+
+        <!-- main func -->
+        <script src="/scripts/main.js"></script>
+        <!-- fancybox -->
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.umd.js" onload="window.Fancybox.bind('[data-fancybox]')" defer></script>
+        <!-- algolia -->
+        <!-- busuanzi -->
+            <script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+        <!-- async load share.js -->
+            <script src="/scripts/share.js" async></script>
+        <!-- mermaid -->
+    </body>
+</html>

